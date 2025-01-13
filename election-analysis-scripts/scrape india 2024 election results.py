@@ -10,9 +10,10 @@ import pandas as pd
 import os
 import io
 
-# Set loc
-pwd
-os.chdir("/Users/sunny/Library/CloudStorage/OneDrive-Personal/Documents/Python/Electoral maps project")
+# Set loc and define paths used to load and save data
+os.getwd()
+base_path = Path().resolve().parent 
+election_data_output_path = base_path / "election-data"
 
 # First task: listing all valid URLs. Need Selenium due to ECI website's settings. Doesn't seem to be work in headless mode.
 
@@ -81,8 +82,9 @@ driver.quit()
 
 # Save valid URLs to a CSV file
 valid_urls_df = pd.DataFrame(valid_urls)
-valid_urls_df.to_csv("valid_urls.csv", index=False)
-print("Valid URLs saved to 'valid_urls.csv'")
+urls_output_path = election_data_output_path / "valid_urls.csv"
+valid_urls_df.to_csv(urls_output_path, index=False)
+print(f"Valid URLs saved to {urls_output_path}.")
 
 
 # Second task: actually scrape data from all valid URLs. Loop over all valid URLs.
@@ -94,7 +96,7 @@ cService = webdriver.ChromeService(executable_path = '/usr/local/bin/chromedrive
 driver = webdriver.Chrome(service = cService)
 
 # Load the valid URLs from the CSV
-valid_urls_df = pd.read_csv("valid_urls.csv")
+valid_urls_df = pd.read_csv(urls_output_path)
 
 # We need to extract the right information from the HTML content of the ECI webpage. For this, define the XPaths:
 table_xpath = '/html/body/main/div/div[3]'  # XPath for the overall results table
@@ -142,6 +144,7 @@ driver.quit()
 full_results_df = pd.concat(all_data, ignore_index=True)
 
 # Save the results to a CSV file
-full_results_df.to_csv("election_results.csv", index=False)
+full_results_path = election_data_output_path / "election_results.csv"
+full_results_df.to_csv(full_results_path, index=False)
 
-print("Scraping complete. Results saved to election_results.csv")
+print(f"Scraping complete. Results saved to {full_results_path}.")

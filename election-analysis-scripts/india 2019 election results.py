@@ -16,12 +16,14 @@ import folium
 from branca.colormap import LinearColormap
 from branca.colormap import StepColormap
 
-# Set loc
+# Set loc and define paths used to load and save data
 os.getwd()
-base_dir = Path().resolve().parent 
+base_path = Path().resolve().parent 
+shapefile_path = base_path / "raw-map-data/parliamentary-constituencies/india_pc_2019.shp"
+election_data_path = base_path / "election-data/eci-data/33. Constituency Wise Detailed Result.xlsx"
 
 # First load the geographical dataset on India's constituencies from the publicly available shapefile
-districts = gpd.read_file("raw map data/parliamentary-constituencies/india_pc_2019.shp")
+districts = gpd.read_file(shapefile_path)
 
 # Some exploration of the India map file
 districts
@@ -64,7 +66,7 @@ plt.show()
 # Next step: Load 2019 General Election data.
 # 2019 statistical reports have been published, web scraping not required
 # Load in ECI election data
-election_2019 = pd.read_excel("election_data/ECI Data/33. Constituency Wise Detailed Result.xlsx", 
+election_2019 = pd.read_excel(election_data_path, 
                               sheet_name="mySheet", 
                               usecols="A:N",
                               skiprows = 2,
@@ -97,7 +99,6 @@ rajampet = {"State": "ANDHRA PRADESH",
 
 # Add the new row to the overall results dataset
 election_2019 = pd.concat([election_2019, pd.DataFrame([rajampet])], ignore_index=True)
-
 
 # Verify that the Total Votes column correctly sums up the General and Postal vote categories
 assert (election_2019["General"] + election_2019["Postal"] == election_2019["Total Votes"]).all() # Correct sum
@@ -252,9 +253,10 @@ election_2019_bjp = election_2019[election_2019["Party"] == "BJP"]
 merged_2019_bjp = pd.merge(districts, election_2019_bjp, on=["State", "Constituency"], how="left")
 merged_2019_bjp["Party"].value_counts(dropna=False)  # 437
 
-# Save BJP results dataset
+# Save BJP results dataset as Feather, as geoJSON file sizes are huge
 geo_bjp_2019 = gpd.GeoDataFrame(merged_2019_bjp, geometry='geometry')
-geo_bjp_2019.to_file("geo_bjp_2019.geojson", driver="GeoJSON")
+geo_bjp_path = base_path / "geo-datasets/geo_bjp_2019.feather"
+geo_bjp_2019.to_feather(geo_bjp_path)
 
 # Initial BJP 2019 vote share plot
 # Separate the data based on vote share
@@ -337,7 +339,8 @@ css = """
 folium.Html(css, script=True).add_to(m)
 
 # Save the map
-m.save("bjp_vote_share_map_step_colour_2019.html")
+bjp_map_path = base_path / "interactive-map-outputs/bjp_vote_share_map_step_colour_2019.html"
+m.save(bjp_map_path)
 #m
 
 
@@ -348,7 +351,8 @@ merged_2019_congress["Party"].value_counts(dropna=False)  # 421 - correct
 
 # Save Congress results dataset
 geo_congress_2019 = gpd.GeoDataFrame(merged_2019_congress, geometry='geometry')
-geo_congress_2019.to_file("geo_congress_2019.geojson", driver="GeoJSON")
+geo_congress_path = base_path / "geo-datasets/geo_congress_2019.feather"
+geo_congress_2019.to_feather(geo_congress_path)
 
 # Interactive Congress 2019 plot
 # For the interactive tooltip, make new State and Constituency columns in title case for better formatting, instead of upper case; retain original columns in upper case for merging with 2024 results later
@@ -410,7 +414,8 @@ css = """
 folium.Html(css, script=True).add_to(m)
 
 # Save and display the map
-m.save("congress_vote_share_map_step_colour_2019.html")
+congress_map_path = base_path / "interactive-map-outputs/congress_vote_share_map_step_colour_2019.html"
+m.save(congress_map_path)
 #m
 
 
@@ -444,7 +449,8 @@ merged_2019_nda = pd.merge(districts, nda_results_2019, on=["State", "Constituen
 
 # Save NDA dataset
 geo_nda_2019 = gpd.GeoDataFrame(merged_2019_nda, geometry="geometry")
-geo_nda_2019.to_file("geo_nda_2019.geojson", driver="GeoJSON")
+geo_nda_path = base_path / "geo-datasets/geo_nda_2019.feather"
+geo_nda_2019.to_feather(geo_nda_path)
 
 
 # Basic static map of NDA 2019 results:
@@ -505,7 +511,8 @@ m.fit_bounds([[bounds[1], bounds[0]], [bounds[3], bounds[2]]])
 colormap.add_to(m)
 
 # Save and display the map
-m.save("nda_vote_share_map_step_colour_2019.html")
+nda_map_path = base_path / "interactive-map-outputs/nda_vote_share_map_step_colour_2019.html"
+m.save(nda_map_path)
 #m
 
 

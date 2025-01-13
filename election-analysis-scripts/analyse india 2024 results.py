@@ -13,12 +13,14 @@ import folium
 from branca.colormap import LinearColormap
 from branca.colormap import StepColormap
 
-# Set path
-pwd
-os.chdir('/Users/sunny/Library/CloudStorage/OneDrive-Personal/Documents/Python/Electoral maps project')
+# Set loc and define paths used to load and save data
+os.getwd()
+base_path = Path().resolve().parent 
+shapefile_path = base_path / "raw-map-data/parliamentary-constituencies/india_pc_2019.shp"
+election_data_path = base_path / "election-data/election_results.csv"
 
 # Load scraped election results data
-results = pd.read_csv("election_results.csv")
+results = pd.read_csv(election_data_path)
 results.describe()  # 9445 rows
 
 # Basic cleaning of strings
@@ -87,7 +89,7 @@ results.rename(columns={'Constituency Name' : 'Constituency'}, inplace=True)
 # NB. Parliamentary constituency boundaries are unchanged between 2019 and 2024 - except for Assam
 # Still using 2019 boundary map as 2024 map is not publicly available yet
 
-districts = gpd.read_file("maps-master/parliamentary-constituencies/india_pc_2019.shp")
+districts = gpd.read_file(shapefile_path)
 
 # Replicate 2019 cleaning of columns
 districts = districts.drop(["ST_CODE", "PC_CODE"], axis=1)
@@ -226,7 +228,11 @@ india_alliance_parties_2024 = ['INDIAN NATIONAL CONGRESS', 'SAMAJWADI PARTY',
 results_2024_bjp = results[results["Party"] == "BHARATIYA JANATA PARTY"].copy()
 merged_2024_bjp = pd.merge(districts, results_2024_bjp, on=["State", "Constituency"], how="left")
 merged_2024_bjp['Party'].value_counts(dropna=False)  # 436 BJP seats. Should be 441, probably Assam
+
+# Save BJP results dataset
 geo_bjp_2024 = gpd.GeoDataFrame(merged_2024_bjp, geometry='geometry')
+geo_bjp_path = base_path / "geo-datasets/geo_bjp_2024.feather"
+geo_bjp_2024.to_feather(geo_bjp_path)
 
 # Initial static plot
 # Separate the data based on vote share
@@ -306,11 +312,9 @@ css = """
 folium.Html(css, script=True).add_to(m)
 
 # Save and display the map
-m.save("bjp_vote_share_map_2024.html")
+bjp_map_path = base_path / "interactive-map-outputs/bjp_vote_share_map_2024.html"
+m.save(bjp_map_path)
 m
-
-# Save BJP results dataset
-geo_bjp_2024.to_file("geo_bjp_2024.geojson", driver="GeoJSON")
 
 
 # Congress maps
@@ -318,10 +322,11 @@ geo_bjp_2024.to_file("geo_bjp_2024.geojson", driver="GeoJSON")
 results_2024_congress = results[results["Party"] == "INDIAN NATIONAL CONGRESS"].copy()
 merged_2024_congress = districts.merge(results_2024_congress, on=["State", "Constituency"], how="left")
 merged_2024_congress['Party'].value_counts(dropna=False)  # 323 INC. Should be 326. Probably Assam
-geo_congress_2024 = gpd.GeoDataFrame(merged_2024_congress, geometry='geometry')
 
 # Save Congress results dataset
-geo_congress_2024.to_file("geo_congress_2024.geojson", driver="GeoJSON")
+geo_congress_2024 = gpd.GeoDataFrame(merged_2024_congress, geometry='geometry')
+geo_congress_path = base_path / "geo-datasets/geo_congress_2024.feather"
+geo_congress_2024.to_feather(geo_congress_path)
 
 # Interactive 2024 Congress map
 
@@ -380,8 +385,9 @@ css = """
 folium.Html(css, script=True).add_to(m)
 
 # Save and display the map
-m.save("congress_vote_share_map_2024.html")
-m
+congress_map_path = base_path / "interactive-map-outputs/congress_vote_share_map_2024.html"
+m.save(congress_map_path)
+#m
 
 
 # NDA map
@@ -421,10 +427,12 @@ nda_results_2024 = nda_results_2024[~((nda_results_2024["Party"] == "BHARATIYA J
 
 # Merge results with map
 geo_nda_2024 = pd.merge(districts, nda_results_2024, on=["State", "Constituency"], how="left")
-geo_nda_2024 = gpd.GeoDataFrame(geo_nda_2024, geometry='geometry')
 
 # Save NDA results + map dataset
-geo_nda_2024.to_file("geo_nda_2024.geojson", driver="GeoJSON")
+geo_nda_2024 = gpd.GeoDataFrame(geo_nda_2024, geometry='geometry')
+geo_nda_path = base_path / "geo-datasets/geo_nda_2024.feather"
+geo_nda_2024.to_feather(geo_nda_path)
+
 
 # Basic static map, NDA
 # No NDA candidates - Kashmir Valley; plus Assam will be dealt with later
@@ -501,7 +509,8 @@ css = """
 folium.Html(css, script=True).add_to(m)
 
 # Save and display the map
-m.save("nda_vote_share_map_2024.html")
-m
+nda_map_path = base_path / "interactive-map-outputs/nda_vote_share_map_2024.html"
+m.save(nda_map_path)
+#m
 
 # INDIA alliance map
