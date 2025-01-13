@@ -1,3 +1,7 @@
 .ipynb_checkpoints/
 *.ipynb
 election-data/.DS_Store
+election-data/ECI Data/.DS_Store
+.DS_Store
+election-data/.DS_Store
+election-data/ECI Data/.DS_Store
