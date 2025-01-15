@@ -1,7 +1,17 @@
+# Jupyter NBs
 .ipynb_checkpoints/
 *.ipynb
+
+# Mac finder
 election-data/.DS_Store
 election-data/ECI Data/.DS_Store
 .DS_Store
-election-data/.DS_Store
-election-data/ECI Data/.DS_Store
+
+
+# Geo datasets
+geo-datasets/
+*.geojson
+*.json
+
+# Heavy maps
+interactive-map-outputs/
