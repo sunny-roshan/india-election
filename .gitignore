@@ -1,6 +1,5 @@
 # Jupyter NBs
 .ipynb_checkpoints/
-*.ipynb
 
 # Mac finder
 election-data/.DS_Store
